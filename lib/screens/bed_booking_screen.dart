@@ -1,112 +1,98 @@
 import 'package:flutter/material.dart';
 
-class HospitalBedBookingScreen extends StatefulWidget {
-  const HospitalBedBookingScreen({super.key});
+class BedBookingScreen extends StatefulWidget {
+  const BedBookingScreen({super.key});
 
   @override
-  State<HospitalBedBookingScreen> createState() => _HospitalBedBookingScreenState();
+  State<BedBookingScreen> createState() => _BedBookingScreenState();
 }
 
-class _HospitalBedBookingScreenState extends State<HospitalBedBookingScreen> {
-  final _formKey = GlobalKey<FormState>();
-  final TextEditingController _nameController = TextEditingController();
-  String? _selectedRoomType;
-  DateTime? _admissionDate;
-  
+class _BedBookingScreenState extends State<BedBookingScreen> {
+  final _dateController = TextEditingController();
+  String _selectedWard = 'General';
+  int _numberOfDays = 1;
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Hospital Bed Booking'),
+        title: const Text('Book Hospital Bed'),
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
+      body: ListView(
+        padding: const EdgeInsets.all(16),
+        children: [
+          DropdownButtonFormField<String>(
+            value: _selectedWard,
+            decoration: const InputDecoration(labelText: 'Select Ward'),
+            items: ['General', 'Private', 'ICU', 'Emergency']
+                .map((ward) => DropdownMenuItem(
+                      value: ward,
+                      child: Text(ward),
+                    ))
+                .toList(),
+            onChanged: (value) => setState(() => _selectedWard = value!),
+          ),
+          const SizedBox(height: 16),
+          TextFormField(
+            controller: _dateController,
+            decoration: const InputDecoration(
+              labelText: 'Admission Date',
+              suffixIcon: Icon(Icons.calendar_today),
+            ),
+            readOnly: true,
+            onTap: () => _selectDate(context),
+          ),
+          const SizedBox(height: 16),
+          Row(
             children: [
-              TextFormField(
-                controller: _nameController,
-                decoration: const InputDecoration(
-                  labelText: 'Patient Name',
-                  border: OutlineInputBorder(),
+              const Text('Number of Days:'),
+              Expanded(
+                child: Slider(
+                  value: _numberOfDays.toDouble(),
+                  min: 1,
+                  max: 30,
+                  divisions: 29,
+                  label: _numberOfDays.toString(),
+                  onChanged: (value) => setState(() => _numberOfDays = value.round()),
                 ),
-                validator: (value) {
-                  if (value?.isEmpty ?? true) {
-                    return 'Please enter patient name';
-                  }
-                  return null;
-                },
               ),
-              const SizedBox(height: 16),
-              DropdownButtonFormField<String>(
-                value: _selectedRoomType,
-                decoration: const InputDecoration(
-                  labelText: 'Room Type',
-                  border: OutlineInputBorder(),
-                ),
-                items: const [
-                  DropdownMenuItem(value: 'general', child: Text('General Ward')),
-                  DropdownMenuItem(value: 'private', child: Text('Private Room')),
-                  DropdownMenuItem(value: 'icu', child: Text('ICU')),
-                ],
-                onChanged: (value) {
-                  setState(() {
-                    _selectedRoomType = value;
-                  });
-                },
-                validator: (value) {
-                  if (value == null) {
-                    return 'Please select a room type';
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: 16),
-              ElevatedButton(
-                onPressed: () async {
-                  final date = await showDatePicker(
-                    context: context,
-                    initialDate: DateTime.now(),
-                    firstDate: DateTime.now(),
-                    lastDate: DateTime.now().add(const Duration(days: 30)),
-                  );
-                  if (date != null) {
-                    setState(() {
-                      _admissionDate = date;
-                    });
-                  }
-                },
-                child: Text(_admissionDate == null 
-                  ? 'Select Admission Date' 
-                  : 'Date: ${_admissionDate.toString().split(' ')[0]}'),
-              ),
-              const SizedBox(height: 24),
-              ElevatedButton(
-                onPressed: () {
-                  if (_formKey.currentState?.validate() ?? false) {
-                    // Handle bed booking
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Booking bed...')),
-                    );
-                  }
-                },
-                style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                ),
-                child: const Text('Book Bed'),
-              ),
+              Text(_numberOfDays.toString()),
             ],
           ),
-        ),
+          const SizedBox(height: 32),
+          ElevatedButton(
+            onPressed: _bookBed,
+            child: const Text('Book Bed'),
+          ),
+        ],
       ),
+    );
+  }
+
+  Future<void> _selectDate(BuildContext context) async {
+    final date = await showDatePicker(
+      context: context,
+      initialDate: DateTime.now(),
+      firstDate: DateTime.now(),
+      lastDate: DateTime.now().add(const Duration(days: 90)),
+    );
+    if (date != null) {
+      setState(() {
+        _dateController.text = date.toString().split(' ')[0];
+      });
+    }
+  }
+
+  void _bookBed() {
+    // Implement bed booking logic
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Bed booked successfully')),
     );
   }
 
   @override
   void dispose() {
-    _nameController.dispose();
+    _dateController.dispose();
     super.dispose();
   }
 }

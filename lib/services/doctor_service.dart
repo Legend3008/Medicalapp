@@ -21,6 +21,11 @@ class DoctorService {
         .where((doc) => doc.specialty == specialty)
         .toList();
   }
+
+  Future<Doctor> getDoctorById(String id) async {
+    await Future.delayed(const Duration(seconds: 1));
+    return _mockDoctors.firstWhere((doc) => doc.id == id);
+  }
 }
 
 final _mockDoctors = [
